@@ -1,35 +1,33 @@
-import {API} from '../../assets/api/api'
 import {PageWrapper} from '../../components/PageWrapper/PageWrapper'
 import {Card} from '../../components/Card/Card'
-import {GetServerSideProps} from 'next'
+import {EpisodeType, ResponseType} from "../../assets/api/rick-and-morty-api"
+import {notFound} from "next/navigation"
 
-export const getServerSideProps: GetServerSideProps = async ({res}) => {
-    const episodes = await API.rickAndMorty.getEpisodes()
+const getEpisodes = async (): Promise<ResponseType<EpisodeType>>  => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_RICK_API_URL}/episode`, {
+        next: {
+            revalidate: 0
+        }
+    });
 
-    if (!episodes) {
-        return { notFound: true }
-    }
-
-    return {
-        props: { episodes }
-    }
+    return await res.json();
 }
 
-const getEpisodes = async () => {
-    const res = await
-}
+export default async function Episodes ()  {
+    const {results} = await getEpisodes()
 
-const Episodes = () => {
+    if (!results) {
+        notFound()
+    }
 
-    const episodesList = episodes.results.map(episode => (
+    const episodesList = results.map(episode => (
         <Card key={episode.id} name={episode.name}/>
     ))
 
     return (
         <PageWrapper>
-            {episodesList}
+            {results.length ? episodesList : 'Ничего не найдено'}
         </PageWrapper>
     )
 }
 
-export default Episodes
